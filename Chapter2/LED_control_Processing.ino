@@ -4,18 +4,18 @@ const int TOTAL_BYTES = 6;
 
 const char LED_TAG = 'L';
 
-const int RED = 1;
-const int GREEN = 2;
-const int BLUE = 3;
-const int WHITE = 4;
+const int LED1 = 1;
+const int LED2 = 2;
+const int LED3 = 3;
+const int LED4 = 4;
 
 const int ON = 1;
 const int OFF = 0;
  
-const int red_pin = 2;
-const int green_pin = 3;
-const int blue_pin = 4;
-const int white_pin = 5;
+const int LED1_pin = 2;
+const int LED2_pin = 3;
+const int LED3_pin = 4;
+const int LED4_pin = 5;
 
 int led_port = 0;
 int button_state = 0;
@@ -23,20 +23,20 @@ int button_state = 0;
 
 void setup() {
   Serial.begin(9600);
-  pinMode(red_pin,OUTPUT);
-  pinMode(green_pin,OUTPUT);
-  pinMode(blue_pin,OUTPUT);
-  pinMode(white_pin,OUTPUT);
+  pinMode(LED1_pin,OUTPUT);
+  pinMode(LED2_pin,OUTPUT);
+  pinMode(LED3_pin,OUTPUT);
+  pinMode(LED4_pin,OUTPUT);
 
-  digitalWrite(red_pin, HIGH);
-  digitalWrite(green_pin, HIGH);
-  digitalWrite(blue_pin, HIGH);
-  digitalWrite(white_pin, HIGH);
+  digitalWrite(LED1_pin, HIGH);
+  digitalWrite(LED2_pin, HIGH);
+  digitalWrite(LED3_pin, HIGH);
+  digitalWrite(LED4_pin, HIGH);
   delay(100);
-  digitalWrite(red_pin, LOW);
-  digitalWrite(green_pin, LOW);
-  digitalWrite(blue_pin, LOW);
-  digitalWrite(white_pin, LOW);
+  digitalWrite(LED1_pin, LOW);
+  digitalWrite(LED2_pin, LOW);
+  digitalWrite(LED3_pin, LOW);
+  digitalWrite(LED4_pin, LOW);
 }
 
 void loop() 
@@ -48,48 +48,48 @@ void loop()
        char tag = Serial.read();
        if(tag == LED_TAG)
        {
-         int led = Serial.read() * 256;
+         int led = Serial.read();
          led = led + Serial.read();
-         int button = Serial.read() * 256;
+         int button = Serial.read();
          button = button + Serial.read();
-         if(led == RED && button == ON)
+         if(led == LED1 && button == ON)
          {
-           led_port = red_pin;
+           led_port = LED1_pin;
            button_state = HIGH;
          }
-         else if(led == RED && button == OFF)
+         else if(led == LED1 && button == OFF)
          {
-           led_port = red_pin;
+           led_port = LED1_pin;
            button_state = LOW;
          }
-         else if(led == GREEN && button == ON)
+         else if(led == LED2 && button == ON)
          {
-           led_port = green_pin;
+           led_port = LED2_pin;
            button_state = HIGH;
          }
-         else if(led == GREEN && button == OFF)
+         else if(led == LED2 && button == OFF)
          {
-           led_port = green_pin;
+           led_port = LED2_pin;
            button_state = LOW;
          }
-         else if(led == BLUE && button == ON)
+         else if(led == LED3 && button == ON)
          {
-           led_port = blue_pin;
+           led_port = LED3_pin;
            button_state = HIGH;
          }
-         else if(led == BLUE && button == OFF)
+         else if(led == LED3 && button == OFF)
          {
-           led_port = blue_pin;
+           led_port = LED3_pin;
            button_state = LOW;
          }
-         else if(led == WHITE && button == ON)
+         else if(led == LED4 && button == ON)
          {
-           led_port = white_pin;
+           led_port = LED4_pin;
            button_state = HIGH;
          }
-         else if(led == WHITE && button == OFF)
+         else if(led == LED4 && button == OFF)
          {
-           led_port = white_pin;
+           led_port = LED4_pin;
            button_state = LOW;
          }
          digitalWrite(led_port, button_state);
@@ -100,4 +100,3 @@ void loop()
   delay(100);
   
 }
-
