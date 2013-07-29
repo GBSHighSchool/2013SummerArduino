@@ -1,83 +1,108 @@
-//import Serial communication library
 import processing.serial.*;
 
-//init variables
-Serial commPort;
-float tempC;
-float tempF;
-int yDist;
-PFont font12;
-PFont font24;
-float[] tempHistory = new float[100];
+Serial myArduinoPort;
 
-void setup()
-{
-  //setup fonts for use throughout the application
-  font12 = loadFont("Verdana-12.vlw"); 
-  font24 = loadFont("Verdana-24.vlw"); 
+final Byte   LF = 10; //line feed
+
+//twitter Oauth에서 설정한 값 입력
+final String OAUTH_CONSUMER_KEY = "";
+final String OAUTH_CONSUMER_SECRET = "";
+final String OAUTH_ACCESS_TOKEN = "-";
+final String OAUTH_ACCESS_TOKEN_SECRET = "";
+
+
+final float  MAX_TEMPERATURE_FOR_MESSAGE_SENDING = 32.0;
+float temperature = 0.0;
+PFont myFont; 
+int i = 0;
+void setup() {
+  size(500,100);
+  background(255);
   
-  //set the size of the window
-  size(210, 200);
   
-  //init serial communication port
-  commPort = new Serial(this, "COM14", 9600);
-  
-  //fill tempHistory with default temps
-  for(int index = 0; index<100; index++)
-    tempHistory[index] = 0;
+
+  myFont = createFont("Calibri Bold",32); 
+  textFont(myFont); 
+
+  println(Serial.list()); 
+  myArduinoPort = new Serial(this, Serial.list()[0], 9600);
+  myArduinoPort.bufferUntil(LF);
 }
 
-void draw()
-{
-  //get the temp from the serial port
-  while (commPort.available() > 0) 
-  {
-    tempC = commPort.read();
-  
-    //refresh the background to clear old data
-    background(123);
 
-    //draw the temp rectangle
-    colorMode(RGB, 160);  //use color mode sized for fading
-    stroke (0);
-    rect (49,19,22,162);
-    //fade red and blue within the rectangle
-    for (int colorIndex = 0; colorIndex <= 160; colorIndex++) 
+void draw() {
+  String windowMessage = "=> Temperature: ";
+  background(255); 
+  
+  fill(0); 
+  text("Arduino + Processing + Twitter", 20,40);
+  
+  fill(0, 0, 255); 
+  windowMessage = windowMessage + temperature + " [C]";
+  text(windowMessage, 20,80);
+  delay(3000);
+  temperature += 0.1;
+  sendMessage(temperature);
+} 
+
+
+void serialEvent(Serial port) {
+  final String serialTexData = port.readStringUntil(LF);
+  if (serialTexData != null) {
+    final String[] textData = split(trim(serialTexData), ' ');
+    if (textData.length == 2)
     {
-      stroke(160 - colorIndex, 0, colorIndex);
-      line(50, colorIndex + 20, 70, colorIndex + 20);
+      if( (textData[1].equals("C") ) || (textData[1].equals("c")) )
+      {
+        temperature = float(textData[0]); //String to float
+        println(temperature);
+        int nextDataSendingWaitingTime_ms = 5 * 1000; //5 second
+        if (temperature > MAX_TEMPERATURE_FOR_MESSAGE_SENDING) {
+          sendMessage(temperature);
+          nextDataSendingWaitingTime_ms =  10 * 1000; //10 second
+        }
+        try {
+          Thread.sleep(nextDataSendingWaitingTime_ms);
+        }
+        catch(InterruptedException ignoreMe) {}
+      }
     }
-    
-    //draw graph
-    stroke(0);
-    fill(255,255,255);
-    rect(90,80,100,100);
-    for (int index = 0; index<100; index++)
-    {  
-      if(index == 99)
-        tempHistory[index] = tempC;
-      else
-        tempHistory[index] = tempHistory[index + 1];
-      point(90 + index, 180 - tempHistory[index]); 
-    }
+  }
+}
+
+
+void sendMessage(float temperature) {
   
-    //write reference values
-    fill(0,0,0);
-    textFont(font12); 
-    textAlign(RIGHT);
-    text("100 C", 45, 25); 
-    text("0 C", 45, 187);
+  int s = second();  // Values from 0 - 59
+  int m = minute();  // Values from 0 - 59
+  int h = hour();    // Values from 0 - 23
+  int d = day();    // Values from 1 - 31
+  int mon = month();  // Values from 1 - 12
+  int y = year();   // 2003, 2004, 2005, etc.
   
-    //draw triangle pointer
-    yDist = int(160 - (160 * (tempC * 0.01)));
-    stroke(0);
-    triangle(75, yDist + 20, 85, yDist + 15, 85, yDist + 25);
+  String  twitterMessage = "[Processing] Temperature: ";
   
-    //write the temp in C and F
-    fill(0,0,0);
-    textFont(font24); 
-    textAlign(LEFT);
-    text(str(int(tempC)) + " C", 115, 65);
-    println(tempC);
+  twitterMessage = twitterMessage + temperature + " C";
+  
+  // To remove duplication error
+  twitterMessage = twitterMessage+". Date: " + y +"-" + mon + "-" + d ;
+  twitterMessage = twitterMessage+". Time: " + h + ":" + m + ":" + s ;
+  
+  // twitter OAuth 
+  ConfigurationBuilder cb = new ConfigurationBuilder();
+  cb.setOAuthConsumerKey(OAUTH_CONSUMER_KEY);
+  cb.setOAuthConsumerSecret(OAUTH_CONSUMER_SECRET);
+  cb.setOAuthAccessToken(OAUTH_ACCESS_TOKEN);
+  cb.setOAuthAccessTokenSecret(OAUTH_ACCESS_TOKEN_SECRET);
+  
+  TwitterFactory tf = new TwitterFactory(cb.build());
+  Twitter twitter = tf.getInstance();
+
+  try {
+    Status status = twitter.updateStatus(twitterMessage);
+    println("Successfully updated the status to [" + status.getText() + "].");
+  }
+  catch (TwitterException e) {
+    e.printStackTrace();
   }
 }
