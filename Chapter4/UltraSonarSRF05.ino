@@ -1,4 +1,3 @@
-
 /*
 	초음파 센서
 	SRF05
@@ -6,7 +5,7 @@
 
 int val;
 void setup() {
-  Serial.begin(115200);
+  Serial.begin(9600);
   pinMode(7, OUTPUT); //Trigger  tx
   pinMode(6, INPUT);  //Echo     rx
   
