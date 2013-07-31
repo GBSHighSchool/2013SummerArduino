@@ -11,8 +11,6 @@ void setup() {
 void loop() 
 {
   if(Serial.available()) {
-    val = Serial.read();
-    myservo.write(val);
-    delay(15);
+    
   }
 }

@@ -58,7 +58,7 @@ void keyPressed() {
 }
 
 void sendMessage(int theValue) {
-    myPort.write(theValue);
+    
 }
 
 void serialEvent(Serial p) {
